@@ -1,5 +1,7 @@
 package hu.bme.mit.nagybalintgyorgy.memorymeasurement;
 import javax.management.MBeanServer;
+
+import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import com.sun.management.HotSpotDiagnosticMXBean;
@@ -20,6 +22,11 @@ public class HeapDumper {
 	public boolean createHeapDump(String filename){
 		
 		try {
+			
+			File file= new File(filename);
+			if(file.exists()){
+				file.delete();
+			}
 			// second arg is true because I need only live objects
 			hotspotMBean.dumpHeap(filename, true);
 		} catch (IOException e) {
