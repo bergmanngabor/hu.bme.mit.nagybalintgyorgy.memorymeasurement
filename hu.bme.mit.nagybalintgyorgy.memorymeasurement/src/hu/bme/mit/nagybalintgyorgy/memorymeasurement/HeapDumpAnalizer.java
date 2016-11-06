@@ -17,8 +17,9 @@ import org.eclipse.mat.util.VoidProgressListener;
 
 public class HeapDumpAnalizer {
 
+	
 	public HeapDumpAnalizer(){
-		
+
 	}
 	
 	
@@ -27,8 +28,11 @@ public class HeapDumpAnalizer {
 		try {
 			ISnapshot snapshot = SnapshotFactory.openSnapshot(new File(dumpname), new VoidProgressListener());
 			List<IClass> classes= (List<IClass>) snapshot.getClasses();
-			long size=0;
 			VoidProgressListener vp= new VoidProgressListener();
+			
+			long size=0;
+			
+	
 			Set<Integer> set= new HashSet<Integer>();
 			for(int i=0; i< classes.size();i++){
 				 IClass c= classes.get(i);
@@ -53,15 +57,18 @@ public class HeapDumpAnalizer {
 			return size;
 			
 			
+			
 		} catch (SnapshotException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
+		
 		return 0;
 
 	}
 	
+
 
 	public int[] toInt(Set<Integer> set) {
 	  int[] a = new int[set.size()];
