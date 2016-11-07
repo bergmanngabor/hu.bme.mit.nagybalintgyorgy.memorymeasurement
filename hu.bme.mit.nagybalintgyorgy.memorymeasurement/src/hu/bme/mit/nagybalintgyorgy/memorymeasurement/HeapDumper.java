@@ -4,7 +4,14 @@ import javax.management.MBeanServer;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
+
 import com.sun.management.HotSpotDiagnosticMXBean;
+
+import javafx.scene.shape.Path;
 
 public class HeapDumper {
 	// This is the name of the HotSpot Diagnostic MBean
@@ -17,6 +24,31 @@ public class HeapDumper {
 	
 	public HeapDumper(){
 		initHotspotMBean();
+	}
+	
+	public long getHeapSize(){
+		String path = System.getProperty("java.io.tmpdir");
+		path= path+ "heapdump.hprof";
+		
+		createHeapDump(path);
+		
+		HeapDumpAnalyzer analyzer= new HeapDumpAnalyzer();
+		long size= analyzer.getHeapSize(path);
+		java.nio.file.Path p= Paths.get(path);
+		
+		
+		try {
+		    Files.delete(p);
+		} catch (NoSuchFileException x) {
+		    System.err.format("%s: no such" + " file or directory%n", path);
+		} catch (DirectoryNotEmptyException x) {
+		    System.err.format("%s not empty%n", path);
+		} catch (IOException x) {
+		    // File permission problems are caught here.
+		    System.err.println(x);
+		}
+		
+		return size;
 	}
 	
 	public boolean createHeapDump(String filename){

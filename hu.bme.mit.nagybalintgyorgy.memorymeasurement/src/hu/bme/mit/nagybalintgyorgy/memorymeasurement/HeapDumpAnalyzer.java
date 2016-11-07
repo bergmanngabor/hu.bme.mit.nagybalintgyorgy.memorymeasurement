@@ -15,20 +15,36 @@ import org.eclipse.mat.snapshot.model.IClass;
 import org.eclipse.mat.snapshot.model.IObject;
 import org.eclipse.mat.util.VoidProgressListener;
 
-public class HeapDumpAnalizer {
+public class HeapDumpAnalyzer {
 
-	public HeapDumpAnalizer(){
-		
+	Set<Integer> set;
+	ISnapshot snapshot;
+	public HeapDumpAnalyzer(){
+		set= new HashSet<Integer>();
 	}
+	
 	
 	
 	public long getHeapSize(String dumpname) {
 
 		try {
-			ISnapshot snapshot = SnapshotFactory.openSnapshot(new File(dumpname), new VoidProgressListener());
-			List<IClass> classes= (List<IClass>) snapshot.getClasses();
+			set= new HashSet<Integer>();
+			snapshot = SnapshotFactory.openSnapshot(new File(dumpname), new VoidProgressListener());
+			//List<IClass> classes= (List<IClass>) snapshot.getClasses();
 			long size=0;
 			VoidProgressListener vp= new VoidProgressListener();
+			
+			
+			int[] ids= snapshot.getGCRoots();
+			
+			
+			for(int id : ids){
+				if(!set.contains(id))
+					getIDs(id);
+			}
+			
+			
+			/*
 			Set<Integer> set= new HashSet<Integer>();
 			for(int i=0; i< classes.size();i++){
 				 IClass c= classes.get(i);
@@ -39,17 +55,24 @@ public class HeapDumpAnalizer {
 			}
 			
 			int[] ids= toInt(set);
+			*/
+			/*
 			for(int i=0; i<ids.length;i++){
 				size += snapshot.getRetainedHeapSize(ids[i]);
 			}
-			int[] idz= snapshot.getRetainedSet(ids, vp);
-			long size2 = snapshot.getHeapSize(idz);
-			
-			System.out.println("Heapdump:");
-			System.out.println("Objektumok száma: " + set.size() + "\n Mérete:  " + size);
+			*/
 			
 			
-			System.out.println("vagy: száma:" + idz.length  +  "  \n Mérete:" + size2);
+			//int[] idz= snapshot.getRetainedSet(ids, vp);
+					
+			//System.out.println("Heapdump:");
+			//System.out.println("Objektumok száma: " + set.size() + "\n Mérete:  " + size);
+			
+			for(int id :set){
+				size += snapshot.getHeapSize(id);
+			}
+			
+			snapshot.dispose();
 			return size;
 			
 			
@@ -62,6 +85,18 @@ public class HeapDumpAnalizer {
 
 	}
 	
+
+	private void getIDs(int nextid) throws SnapshotException {
+			set.add(nextid);
+			int[] ids= snapshot.getOutboundReferentIds(nextid);
+			for(int i=0; i< ids.length; i++){
+				if(!set.contains(ids[i]))
+					getIDs(ids[i]);
+			}
+		
+	}
+
+
 
 	public int[] toInt(Set<Integer> set) {
 	  int[] a = new int[set.size()];
