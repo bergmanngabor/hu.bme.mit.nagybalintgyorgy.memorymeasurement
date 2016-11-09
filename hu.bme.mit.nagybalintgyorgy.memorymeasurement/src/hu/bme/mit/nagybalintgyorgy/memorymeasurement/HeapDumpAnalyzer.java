@@ -70,12 +70,24 @@ public class HeapDumpAnalyzer {
 			
 			
 			int[] ids= snapshot.getGCRoots();
+			
+			/*
 			for(int id :ids){
+				if(!set.contains(id)){
+					getIDs(id);
+				}
+			}
+			
+			System.out.println(set.size());
+			
+			*/
+			for(int id: ids){
 				long s= snapshot.getRetainedHeapSize(id);
 				//System.out.println(s);
 				
 				size += s;
 			}
+			
 			
 			snapshot.dispose();
 			return size;
@@ -99,6 +111,15 @@ public class HeapDumpAnalyzer {
 					getIDs(ids[i]);
 			}
 		
+	}
+	
+	private long getRetainedSize(int id) throws SnapshotException{
+		long size= snapshot.getRetainedHeapSize(id);
+		int[] outgoing= snapshot.getOutboundReferentIds(id);
+		for(int i=0; i<1; i++){
+			size= size - snapshot.getRetainedHeapSize(outgoing[i]);
+		}
+		return size;
 	}
 
 
