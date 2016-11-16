@@ -1,6 +1,7 @@
 package hu.bme.mit.nagybalintgyorgy.memorymeasurement;
 
 import java.io.File;
+import java.lang.instrument.Instrumentation;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,8 +12,11 @@ import org.eclipse.mat.SnapshotException;
 import org.eclipse.mat.snapshot.ISnapshot;
 import org.eclipse.mat.snapshot.SnapshotFactory;
 import org.eclipse.mat.snapshot.SnapshotInfo;
+import org.eclipse.mat.snapshot.model.GCRootInfo;
 import org.eclipse.mat.snapshot.model.IClass;
 import org.eclipse.mat.snapshot.model.IObject;
+import org.eclipse.mat.snapshot.model.IStackFrame;
+import org.eclipse.mat.snapshot.model.IThreadStack;
 import org.eclipse.mat.util.VoidProgressListener;
 
 public class HeapDumpAnalyzer {
@@ -28,6 +32,9 @@ public class HeapDumpAnalyzer {
 	public long getHeapSize(String dumpname) {
 
 		try {
+			System.out.println("*************************************");
+			System.out.println("-------------------------------------");
+			
 			set= new HashSet<Integer>();
 			snapshot = SnapshotFactory.openSnapshot(new File(dumpname), new VoidProgressListener());
 			//List<IClass> classes= (List<IClass>) snapshot.getClasses();
@@ -35,14 +42,11 @@ public class HeapDumpAnalyzer {
 			VoidProgressListener vp= new VoidProgressListener();
 			
 			
-			
-			
 			/*
 			for(int id : ids){
 				if(!set.contains(id))
 					getIDs(id);
 			}
-			
 			
 			/*
 			Set<Integer> set= new HashSet<Integer>();
@@ -71,25 +75,53 @@ public class HeapDumpAnalyzer {
 			
 			int[] ids= snapshot.getGCRoots();
 			
+			
+			for(int id: ids){
+				int type= snapshot.getGCRootInfo(id)[0].getType();
+				String name= snapshot.getGCRootInfo(id)[0].getTypeAsString(type);
+				if(name.equals("Thread")){
+					set.add(id);
+					System.out.println(snapshot.getObject(id).getClassSpecificName());
+					System.out.println(snapshot.getRetainedHeapSize(id));
+					
+				}
+			}
+			
+			
+			
+			size= snapshot.getHeapSize(snapshot.getRetainedSet(toInt(set), vp));
+			
+			/*
+			int[] theids= snapshot.getRetainedSet(ids,vp);
+			System.out.println("Objektumopk száma: " + theids.length);
+			
+			for(int id: theids){
+				size+= snapshot.getHeapSize(id);
+			}
+			
 			/*
 			for(int id :ids){
 				if(!set.contains(id)){
 					getIDs(id);
 				}
 			}
+				
 			
-			System.out.println(set.size());
+			//System.out.println(set.size());
 			
-			*/
-			for(int id: ids){
-				long s= snapshot.getRetainedHeapSize(id);
+			
+			for(int id: set){
+				long s= snapshot.getHeapSize(id);
 				//System.out.println(s);
 				
 				size += s;
 			}
-			
+			*/
 			
 			snapshot.dispose();
+			
+			System.out.println("-------------------------------------");
+			System.out.println("*************************************");
 			return size;
 			
 			
@@ -115,7 +147,7 @@ public class HeapDumpAnalyzer {
 	
 	private long getRetainedSize(int id) throws SnapshotException{
 		long size= snapshot.getRetainedHeapSize(id);
-		int[] outgoing= snapshot.getOutboundReferentIds(id);
+		int[] outgoing= snapshot.getImmediateDominatedIds(id);
 		for(int i=0; i<1; i++){
 			size= size - snapshot.getRetainedHeapSize(outgoing[i]);
 		}
