@@ -32,96 +32,22 @@ public class HeapDumpAnalyzer {
 	public long getHeapSize(String dumpname) {
 
 		try {
-			System.out.println("*************************************");
-			System.out.println("-------------------------------------");
 			
 			set= new HashSet<Integer>();
 			snapshot = SnapshotFactory.openSnapshot(new File(dumpname), new VoidProgressListener());
-			//List<IClass> classes= (List<IClass>) snapshot.getClasses();
 			long size=0;
 			VoidProgressListener vp= new VoidProgressListener();
 			
 			
-			/*
-			for(int id : ids){
-				if(!set.contains(id))
-					getIDs(id);
-			}
-			
-			/*
-			Set<Integer> set= new HashSet<Integer>();
-			for(int i=0; i< classes.size();i++){
-				 IClass c= classes.get(i);
-				 int[] ids= c.getObjectIds();
-				 for(int j=0; j< ids.length; j++){
-					 set.add(ids[j]);
-				 }
-			}
-			
-			int[] ids= toInt(set);
-			*/
-			/*
-			for(int i=0; i<ids.length;i++){
-				size += snapshot.getRetainedHeapSize(ids[i]);
-			}
-			*/
-			
-			
-			//int[] idz= snapshot.getRetainedSet(ids, vp);
-					
-			//System.out.println("Heapdump:");
-			//System.out.println("Objektumok száma: " + set.size() + "\n Mérete:  " + size);
-			
 			
 			int[] ids= snapshot.getGCRoots();
-			
-			
-			for(int id: ids){
-				int type= snapshot.getGCRootInfo(id)[0].getType();
-				String name= snapshot.getGCRootInfo(id)[0].getTypeAsString(type);
-				if(name.equals("Thread")){
-					set.add(id);
-					System.out.println(snapshot.getObject(id).getClassSpecificName());
-					System.out.println(snapshot.getRetainedHeapSize(id));
-					
-				}
+			for(int id:ids){
+				set.add(id);
 			}
-			
-			
-			
-			size= snapshot.getHeapSize(snapshot.getRetainedSet(toInt(set), vp));
-			
-			/*
-			int[] theids= snapshot.getRetainedSet(ids,vp);
-			System.out.println("Objektumopk száma: " + theids.length);
-			
-			for(int id: theids){
-				size+= snapshot.getHeapSize(id);
-			}
-			
-			/*
-			for(int id :ids){
-				if(!set.contains(id)){
-					getIDs(id);
-				}
-			}
-				
-			
-			//System.out.println(set.size());
-			
-			
-			for(int id: set){
-				long s= snapshot.getHeapSize(id);
-				//System.out.println(s);
-				
-				size += s;
-			}
-			*/
+			size= snapshot.getHeapSize(snapshot.getRetainedSet(ids, vp));
 			
 			snapshot.dispose();
-			
-			System.out.println("-------------------------------------");
-			System.out.println("*************************************");
+
 			return size;
 			
 			
