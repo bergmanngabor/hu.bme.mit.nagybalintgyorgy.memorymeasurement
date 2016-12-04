@@ -4,6 +4,8 @@ import javax.management.MBeanServer;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.UUID;
+
 import com.sun.management.HotSpotDiagnosticMXBean;
 
 public class HeapDumper {
@@ -14,19 +16,18 @@ public class HeapDumper {
 	
 	// field to store the hotspot diagnostic MBean 
     private static volatile HotSpotDiagnosticMXBean hotspotMBean;
-	
+	private HeapDumpAnalyzer heapDumpAnalyzer;
+    
+    
 	public HeapDumper(){
 		initHotspotMBean();
+		heapDumpAnalyzer= new HeapDumpAnalyzer();
 	}
 	
 	public boolean createHeapDump(String filename){
 		
 		try {
-			
-			File file= new File(filename);
-			if(file.exists()){
-				file.delete();
-			}
+			deleteFile(filename);
 			// second arg is true because I need only live objects
 			hotspotMBean.dumpHeap(filename, true);
 		} catch (IOException e) {
@@ -36,6 +37,15 @@ public class HeapDumper {
 		}
 		
 		return true;
+	}
+	
+	
+	private void deleteFile(String filename){
+	    
+	    File file= new File(filename);
+        if(file.exists()){
+            file.delete();
+        } 
 	}
 	
 	// initialize the hotspot diagnostic MBean field

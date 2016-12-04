@@ -36,6 +36,7 @@ public class HeapDumpAnalyzer {
 			int[] ids= snapshot.getGCRoots();
 
 			size= snapshot.getHeapSize(snapshot.getRetainedSet(ids, vp));
+			snapshot.dispose();
 			return size;
 			
 		} catch (SnapshotException e) {
